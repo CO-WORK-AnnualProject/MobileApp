@@ -2,54 +2,91 @@ package com.lrams.worknshare_tickettracking;
 
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private List<Ticket> ticketList = new ArrayList<>();
+    private RecyclerView recyclerView;
+    private TicketsAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        mAdapter = new TicketsAdapter(ticketList);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+
+        // set the adapter
+        recyclerView.setAdapter(mAdapter);
+
+        prepareTicketData();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    private void prepareTicketData() {
+        Ticket ticket = new Ticket("Ecran bleu", "L'écran est tout d'un coup devenu bleu...", "Nouveau");
+        ticketList.add(ticket);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        ticket = new Ticket("Inside Out", "Animation, Kids & Family", "2015");
+        ticketList.add(ticket);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        ticket = new Ticket("Star Wars: Episode VII - The Force Awakens", "Action", "2015");
+        ticketList.add(ticket);
 
-        return super.onOptionsItemSelected(item);
+        ticket = new Ticket("Shaun the Sheep", "Animation", "2015");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("The Martian", "Science Fiction & Fantasy", "2015");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Mission: Impossible Rogue Nation", "Action", "2015");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Up", "Animation", "2009");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Star Trek", "Science Fiction", "2009");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("The LEGO Ticket", "Animation", "2014");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Iron Man", "Action & Adventure", "2008");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Aliens", "Science Fiction", "1986");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Chicken Run", "Animation", "2000");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Back to the Future", "Science Fiction", "1985");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Raiders of the Lost Ark", "Action & Adventure", "1981");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Goldfinger", "Action & Adventure", "1965");
+        ticketList.add(ticket);
+
+        ticket = new Ticket("Guardians of the Galaxy", "Science Fiction & Fantasy", "2014");
+        ticketList.add(ticket);
+
+        mAdapter.notifyDataSetChanged();
     }
 }
