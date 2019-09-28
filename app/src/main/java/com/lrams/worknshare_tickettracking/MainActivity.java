@@ -1,6 +1,21 @@
 package com.lrams.worknshare_tickettracking;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.util.Log;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -14,79 +29,85 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private List<Ticket> ticketList = new ArrayList<>();
-    private RecyclerView recyclerView;
     private TicketsAdapter mAdapter;
+    private RequestQueue requestQueue;  // This is our requests queue to process our HTTP requests.
+
+    //RecyclerView recyclerView;
+    String baseUrl = "https://co-work-lrams.herokuapp.com";  // This is the API base URL
+    String url;  // This will hold the full URL which will include the username entered in the etGitHubUser.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
         setSupportActionBar(toolbar);
 
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-
         mAdapter = new TicketsAdapter(ticketList);
+
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-
-        // set the adapter
         recyclerView.setAdapter(mAdapter);
 
-        prepareTicketData();
+        requestQueue = Volley.newRequestQueue(this);
+
+        if(haveInternetConnection()) {
+            getTicketList();
+        } else {
+            addToTicketList(new Ticket("Veuillez-vous connecter à internet.","Veuillez-vous connecter à internet.",":("));
+        }
+
     }
 
-    private void prepareTicketData() {
-        Ticket ticket = new Ticket("Ecran bleu", "L'écran est tout d'un coup devenu bleu...", "Nouveau");
+    private void addToTicketList(Ticket ticket) {
         ticketList.add(ticket);
+    }
 
-        ticket = new Ticket("Inside Out", "Animation, Kids & Family", "2015");
-        ticketList.add(ticket);
+    private boolean haveInternetConnection(){
+        NetworkInfo network = ((ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+        return (network != null && network.isConnected());
+    }
 
-        ticket = new Ticket("Star Wars: Episode VII - The Force Awakens", "Action", "2015");
-        ticketList.add(ticket);
+    private void getTicketList() {
+        this.url = this.baseUrl + "/listTickets";
 
-        ticket = new Ticket("Shaun the Sheep", "Animation", "2015");
-        ticketList.add(ticket);
+        JsonArrayRequest arrReq = new JsonArrayRequest(Request.Method.GET, this.url, new Response.Listener<JSONArray>() {
 
-        ticket = new Ticket("The Martian", "Science Fiction & Fantasy", "2015");
-        ticketList.add(ticket);
+            @Override
+            public void onResponse(JSONArray response) {
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+                        JSONObject jsonObj = response.getJSONObject(i);
+                        String objet = jsonObj.optString("objet");
+                        String description = jsonObj.optString("description");
+                        String equipment = jsonObj.optString("equipment");
+                        String status = jsonObj.optString("status");
+                        String id_open_space = jsonObj.optString("id_open_space");
+                        addToTicketList(new Ticket(objet, description, status));
+                        Log.v("Volley", "Object Json Added.");
+                    } catch (JSONException e) {
+                        Log.e("Volley", "Invalid JSON Object.");
+                    }
 
-        ticket = new Ticket("Mission: Impossible Rogue Nation", "Action", "2015");
-        ticketList.add(ticket);
+                }
+                mAdapter.notifyDataSetChanged();
 
-        ticket = new Ticket("Up", "Animation", "2009");
-        ticketList.add(ticket);
+            }
+        },new Response.ErrorListener() {
 
-        ticket = new Ticket("Star Trek", "Science Fiction", "2009");
-        ticketList.add(ticket);
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("Volley", "Error Http Response");
+            }
+        });
 
-        ticket = new Ticket("The LEGO Ticket", "Animation", "2014");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Iron Man", "Action & Adventure", "2008");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Aliens", "Science Fiction", "1986");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Chicken Run", "Animation", "2000");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Back to the Future", "Science Fiction", "1985");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Raiders of the Lost Ark", "Action & Adventure", "1981");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Goldfinger", "Action & Adventure", "1965");
-        ticketList.add(ticket);
-
-        ticket = new Ticket("Guardians of the Galaxy", "Science Fiction & Fantasy", "2014");
-        ticketList.add(ticket);
-
-        mAdapter.notifyDataSetChanged();
+        requestQueue.add(arrReq);
     }
 }
